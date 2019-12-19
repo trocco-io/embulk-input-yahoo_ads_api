@@ -1,0 +1,10 @@
+*~
+/pkg/
+/tmp/
+/.bundle/
+/vendor/
+/Gemfile.lock
+/config_ydn.yml
+/config_yss.yml
+/config_test.yml
+/sample_xml.txt

@@ -9,15 +9,15 @@
 
 ## Configuration
 
-- **client_id**: Yahoo社から提供されるクライアントID (string, required)
-- **client_secret**: Yahoo社から提供されるクライアントシークレット (string, required)
-- **refresh_token**: アクセストークンを再取得するためのリフレッシュトークン (string, required)
-- **servers**: APIのサーバー。YDNとYSSで異なる。 (string, required)
-- **account_id**: 取得するアカウントのID (string, required)
-- **report_type**: レポートタイプ。YSSを利用する時のみ必須。 (string, default: `null`)
-- **date_range_min**: 取得するレポート期間の開始日. フォーマットは"YYYYMMDD" (string, required)
-- **date_range_max**: 取得するレポート期間の終了日. フォーマットは"YYYYMMDD" (string, required)
-- **columns**: 取得するレポートの列 (string, required)
+- **client_id**: Yahoo client ID. (string, required)
+- **client_secret**: Yahoo client secret. (string, required)
+- **refresh_token**: Refresh token to get access token.  (string, required)
+- **servers**: Servers of API. It is different for YSS and YDN. (string, required)
+- **account_id**: Yahoo account id. (string, required)
+- **report_type**: YSS Report type. It is required only to use YSS. (string, default: `null`)
+- **date_range_min**: Report start date. format:`YYYYMMDD` (string, required)
+- **date_range_max**: Report end date. format:`YYYYMMDD` (string, required)
+- **columns**: Report columns. (string, required)
 
 ## Example
 

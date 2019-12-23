@@ -72,7 +72,7 @@ module Embulk
           sleep(wait_second)
           response = self.invoke('download', download_config)
           if response.start_with?("{") && response.end_with?("}")
-            ::Embulk.logger.info "Wait For Making Report"
+            ::Embulk.logger.info "Waiting For Making Report"
             return report_download(report_job_id, wait_second * 2)
           else
             return response

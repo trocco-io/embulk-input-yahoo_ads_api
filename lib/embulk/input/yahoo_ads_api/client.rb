@@ -5,7 +5,7 @@ module Embulk
       class Client
         def initialize(servers, account_id, token)
           @account_id = account_id
-          @base = servers + '/ReportDefinitionService​/'
+          @base = servers + '/ReportDefinitionService/'
           @token = token
         end
 
@@ -13,7 +13,7 @@ module Embulk
           url = @base + method
           ::Embulk.logger.info "Access URI: #{url}"
           RestClient.post(
-            url.gsub(/[\xe2\x80\x8b]+/, ''),
+            url,
             params,
             {
               content_type: :json,

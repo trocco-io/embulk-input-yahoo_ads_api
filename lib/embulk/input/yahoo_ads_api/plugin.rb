@@ -1,3 +1,4 @@
+require 'time'
 module Embulk
   module Input
     module YahooAdsApi
@@ -14,15 +15,11 @@ module Embulk
             :columns => config.param("columns", :array),
             :account_id => config.param("account_id", :string),
             :report_type => config.param("report_type", :string, default: nil),
-            :date_range => {
-              :min => config.param("date_range_min", :string),
-              :max => config.param("date_range_max", :string),
-            },
+            :start_date => config.param("start_date", :string),
+            :end_date => config.param("end_date", :string),
           }
-
-          columns = task[:columns].map do |colname|
-            column = Column.all.find{|c| c[:request_name] == colname}
-            ::Embulk::Column.new(nil, colname, column[:type])
+          columns = task[:columns].map do |column|
+            ::Embulk::Column.new(nil, column["name"], column["type"].to_sym)
           end
 
           resume(task, columns, 1, &control)
@@ -39,6 +36,7 @@ module Embulk
         end
 
         def run
+          column_list = Column.send(task[:report_type] != nil ? task[:report_type].downcase : "ydn")
           token = Auth.new({
             client_id: task["client_id"],
             client_secret: task["client_secret"],
@@ -47,14 +45,20 @@ module Embulk
           ReportClient.new(task["servers"], task["account_id"], token).run({
             servers: task["servers"],
             date_range_type: 'CUSTOM_DATE',
-            start_date: task["date_range"]["min"],
-            end_date: task["date_range"]["max"],
+            start_date: task["start_date"],
+            end_date: task["end_date"],
             report_type: task["report_type"],
             fields: task["columns"]
           }).each do |row|
             page_builder.add(task["columns"].map do|column|
-              col = Column.all.find{|c| c[:request_name] == column}
-              row.send(col[:xml_name])
+              col = column_list.find{|c| c[:request_name] == column["name"]}
+              if column["type"] == "timestamp"
+                Time.strptime(row.send(col[:xml_name]),column["format"])
+              elsif column["type"] == "long"
+                row.send(col[:xml_name]).to_i
+              else
+                row.send(col[:xml_name])
+              end
             end)
           end
           page_builder.finish

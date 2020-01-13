@@ -53,13 +53,12 @@ module Embulk
             page_builder.add(task["columns"].map do|column|
               col = column_list.find{|c| c[:request_name] == column["name"]}
               if column["type"] == "timestamp"
-                value = Time.strptime(row.send(col[:xml_name]),column["format"])
+                Time.strptime(row.send(col[:xml_name]),column["format"])
               elsif column["type"] == "long"
-                value = row.send(col[:xml_name]).to_i
+                row.send(col[:xml_name]).to_i
               else
-                value = row.send(col[:xml_name])
+                row.send(col[:xml_name])
               end
-              value
             end)
           end
           page_builder.finish

@@ -13,7 +13,6 @@ module Embulk
           data = xml_parse(downloaded_report)
           remove_report(report_id)
           ::Embulk.logger.info "Remove Report JOB, report_job_id = #{report_id}"
-          ::Embulk.logger.info "#{data}"
           data
         end
 

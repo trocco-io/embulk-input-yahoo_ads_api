@@ -13,11 +13,13 @@ module Embulk
           data = xml_parse(downloaded_report)
           remove_report(report_id)
           ::Embulk.logger.info "Remove Report JOB, report_job_id = #{report_id}"
+          ::Embulk.logger.info "#{data}"
           data
         end
 
         private
         def add_report(config)
+          column_name_list = config[:fields].map {|field| field["name"]}
           if config[:servers].include?("display")
             add_config = {
               accountId: @account_id,
@@ -30,7 +32,7 @@ module Embulk
                   dateRangeType: config[:date_range_type],
                   downloadEncode: "UTF-8",
                   downloadFormat: "XML",
-                  fields: config[:fields],
+                  fields: column_name_list,
                   lang: "JA",
                   reportName: "YahooReport_#{DateTime.now.strftime("%Y%m%d_%H%I%s")}",
                 }
@@ -45,7 +47,7 @@ module Embulk
                       endDate: config[:end_date],
                       startDate: config[:start_date]
                   },
-                  fields: config[:fields],
+                  fields: column_name_list,
                   reportDateRangeType: config[:date_range_type],
                   reportDownloadEncode: "UTF-8",
                   reportDownloadFormat: "XML",

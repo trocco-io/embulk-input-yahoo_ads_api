@@ -3,9 +3,8 @@ module Embulk
   module Input
     module YahooAdsApi
       class Client
-        def initialize(servers, account_id, token)
+        def initialize(account_id, token)
           @account_id = account_id
-          @base = servers + '/ReportDefinitionService/'
           @token = token
         end
 

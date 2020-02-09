@@ -81,6 +81,14 @@ module Embulk
         end
 
         def xml_parse(report)
+          Column.change.each do |list|
+            name_change_before = 'name="' + list[:from] + '"'
+            name_change_after = 'name="' + list[:to] + '"'
+            report.gsub!(name_change_before,name_change_after)
+            row_change_before = list[:from] + '="'
+            row_change_after = list[:to] + '="'
+            report.gsub!(row_change_before,row_change_after)
+          end
           xml = Nokogiri::XML(report)
           columns = xml.css('column').map{|column| column.attribute('name').value }
           xml.css('row').map do |row|

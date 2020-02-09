@@ -2,6 +2,16 @@ module Embulk
   module Input
     module YahooAdsApi
       class Column
+        def self.change
+          [
+            {from: "campaignLabelIDs(JSON)", to: "campaignLabelIDsJSON"},
+            {from: "campaignLabels(JSON)", to: "campaignLabelsJSON"},
+            {from: "adGroupLabelIDs(JSON)", to: "adGroupLabelIDsJSON"},
+            {from: "adGroupLabels(JSON)", to: "adGroupLabelsJSON"},
+            {from: "adLabelIDs(JSON)", to: "adLabelIDsJSON"},
+            {from: "adLabels(JSON)", to: "adLabelsJSON"}
+          ]
+        end
         def self.ydn
           [
             {:request_name=>"ACCOUNT_ID", :xml_name=>"accountID"},
@@ -43,15 +53,15 @@ module Embulk
             {:request_name=>"CARRIER", :xml_name=>"carrier"},
             {:request_name=>"AD_LAYOUT", :xml_name=>"adLayout"},
             {:request_name=>"IMAGE_OPTION", :xml_name=>"imageOption"},
-            {:request_name=>"CAMPAIGN_LABEL_IDS_JSON", :xml_name=>"campaignLabelIDs(JSON)"},
+            {:request_name=>"CAMPAIGN_LABEL_IDS_JSON", :xml_name=>"campaignLabelIDsJSON"},
             {:request_name=>"CAMPAIGN_LABELS", :xml_name=>"campaignLabels"},
-            {:request_name=>"CAMPAIGN_LABELS_JSON", :xml_name=>"campaignLabels(JSON)"},
-            {:request_name=>"ADGROUP_LABEL_IDS_JSON", :xml_name=>"adGroupLabelIDs(JSON)"},
+            {:request_name=>"CAMPAIGN_LABELS_JSON", :xml_name=>"campaignLabelsJSON"},
+            {:request_name=>"ADGROUP_LABEL_IDS_JSON", :xml_name=>"adGroupLabelIDsJSON"},
             {:request_name=>"ADGROUP_LABELS", :xml_name=>"adGroupLabels"},
-            {:request_name=>"ADGROUP_LABELS_JSON", :xml_name=>"adGroupLabels(JSON)"},
-            {:request_name=>"AD_LABEL_IDS_JSON", :xml_name=>"adLabelIDs(JSON)"},
+            {:request_name=>"ADGROUP_LABELS_JSON", :xml_name=>"adGroupLabelsJSON"},
+            {:request_name=>"AD_LABEL_IDS_JSON", :xml_name=>"adLabelIDsJSON"},
             {:request_name=>"AD_LABELS", :xml_name=>"adLabels"},
-            {:request_name=>"AD_LABELS_JSON", :xml_name=>"adLabels(JSON)"},
+            {:request_name=>"AD_LABELS_JSON", :xml_name=>"adLabelsJSON"},
             {:request_name=>"CONVERSION_NAME", :xml_name=>"conversionName"},
             {:request_name=>"OS", :xml_name=>"os"},
             {:request_name=>"APPLI", :xml_name=>"appli"},

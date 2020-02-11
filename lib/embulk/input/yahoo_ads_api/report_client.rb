@@ -5,6 +5,11 @@ module Embulk
   module Input
     module YahooAdsApi
       class ReportClient < Client
+        def initialize(servers, account_id, token)
+          super(account_id, token)
+          @base = servers + '/ReportDefinitionService/'
+        end
+
         def run(query)
           report_id = add_report(query)
           ::Embulk.logger.info "Create Report, report_id = #{report_id}"

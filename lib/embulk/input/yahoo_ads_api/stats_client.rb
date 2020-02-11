@@ -9,14 +9,14 @@ module Embulk
         end
 
         def run(query)
-          stats = get_stats(query)
+          raw_data = []
+          get_stats(query, raw_data)
           ::Embulk.logger.info "Get Stats"
-          data = reshape_data(stats,query)
-          data
+          reshape_data(raw_data,query)
         end
 
         private
-        def get_stats(config)
+        def get_stats(config, raw_data, index=1)
           get_config = {
             accountId: @account_id,
             statsPeriod: config[:date_range_type],
@@ -28,16 +28,22 @@ module Embulk
               "GENDER_TARGET"
             ],
             type: config[:stats_type],
-            startIndex: 1,
-            numberResults: 100
+            startIndex: index,
+            numberResults: 500
           }.to_json
           response = JSON.parse(self.invoke("get", get_config))
           if response["rval"]["values"][0]["operationSucceeded"] == false
             error = response["rval"]["values"][0]["errors"]
             raise ::Embulk::Input::YahooAdsApi::Error::InvalidEnumError, error.to_json 
           end
-          response["rval"]["values"]
+          raw_data.concat(response["rval"]["values"])
+          if response["rval"]["values"].length == 500
+            get_stats(config, raw_data, index+500)
+          else
+            raw_data
+          end
         end
+
         def reshape_data(data,config)
           data_type = 'campaignStatsValue' if config[:stats_type] == "CAMPAIGN"
           data_type = 'adGroupStatsValue' if config[:stats_type] == "ADGROUP"

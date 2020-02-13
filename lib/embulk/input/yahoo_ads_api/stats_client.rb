@@ -16,7 +16,8 @@ module Embulk
         end
 
         private
-        def get_stats(config, raw_data, index=1)
+        def get_stats(config, raw_data, count=1)
+          number_result = 1
           get_config = {
             accountId: @account_id,
             statsPeriod: config[:date_range_type],
@@ -28,19 +29,24 @@ module Embulk
               "GENDER_TARGET"
             ],
             type: config[:stats_type],
-            startIndex: index,
-            numberResults: 500
+            startIndex: (count-1)*number_result+1,
+            numberResults: number_result
           }.to_json
           response = JSON.parse(self.invoke("get", get_config))
-          if response["rval"]["values"][0]["operationSucceeded"] == false
-            error = response["rval"]["values"][0]["errors"]
-            raise ::Embulk::Input::YahooAdsApi::Error::InvalidEnumError, error.to_json 
-          end
-          raw_data.concat(response["rval"]["values"])
-          if response["rval"]["values"].length == 500
-            get_stats(config, raw_data, index+500)
-          else
+          if response.dig("rval","values").nil?
             raw_data
+          else
+            if response["rval"]["values"][0]["operationSucceeded"] == false
+              error = response["rval"]["values"][0]["errors"]
+              raise ::Embulk::Input::YahooAdsApi::Error::InvalidEnumError, error.to_json
+            else
+              raw_data.concat(response["rval"]["values"])
+              if response["rval"]["totalNumEntries"] > number_result*count
+                get_stats(config, raw_data, count+1)
+              else
+                raw_data
+              end
+            end
           end
         end
 

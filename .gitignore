@@ -4,6 +4,7 @@
 /.bundle/
 /vendor/
 /Gemfile.lock
+/config_oom.yml
 /config_ydn.yml
 /config_yss.yml
 /config_ydn_stats.yml

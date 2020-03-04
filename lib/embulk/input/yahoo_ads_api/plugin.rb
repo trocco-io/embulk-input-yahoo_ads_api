@@ -1,4 +1,5 @@
 require 'time'
+require 'csv'
 module Embulk
   module Input
     module YahooAdsApi
@@ -45,48 +46,38 @@ module Embulk
           }).get_token
           if task["target"] == "report"
             column_list = Column.send(task[:report_type] != nil ? task[:report_type].downcase : "ydn")
-            ReportClient.new(task["servers"], task["account_id"], token).run({
+            data = ReportClient.new(task["servers"], task["account_id"], token).run({
               servers: task["servers"],
               date_range_type: 'CUSTOM_DATE',
               start_date: task["start_date"],
               end_date: task["end_date"],
               report_type: task["report_type"],
               fields: task["columns"]
-            }).each do |row|
-              page_builder.add(task["columns"].map do|column|
-                col = column_list.find{|c| c[:request_name] == column["name"]}
-                if column["type"] == "timestamp"
-                  Time.strptime(row.send(col[:xml_name]),column["format"])
-                elsif column["type"] == "long"
-                  row.send(col[:xml_name]).to_i
-                else
-                  row.send(col[:xml_name])
-                end
-              end)
-            end
+            })
+            data.delete(-1)
           elsif task["target"] == "stats"
-            StatsClient.new(task["servers"], task["account_id"], token).run({
+            column_list = Column.stats
+            data = StatsClient.new(task["servers"], task["account_id"], token).run({
               servers: task["servers"],
               date_range_type: 'CUSTOM_DATE',
               start_date: task["start_date"],
               end_date: task["end_date"],
               stats_type: task["report_type"],
-            }).each do |row|
-              page_builder.add(task["columns"].map do|column|
-                col = Column.stats.find{|c| c[:request_name] == column["name"]}
-                if row[col[:api_name]].nil?
-                  nil
-                elsif column["type"] == "timestamp"
-                  Time.strptime(row[col[:api_name]],column["format"])
-                elsif column["type"] == "long"
-                  row[col[:api_name]].to_i
-                elsif column["type"] == "double"
-                  row[col[:api_name]].to_f
-                else
-                  row[col[:api_name]]
-                end
-              end)
-            end
+            })
+          end
+          data.each do |row|
+            page_builder.add(task["columns"].map do|column|
+              col = column_list.find{|c| c[:request_name] == column["name"]}
+              if column["type"] == "timestamp"
+                Time.strptime(row[col[:api_name]],column["format"])
+              elsif column["type"] == "long"
+                row[col[:api_name]].to_i
+              elsif column["type"] == "double"
+                row[col[:api_name]].to_f
+              else
+                row[col[:api_name]].force_encoding("UTF-8")
+              end
+            end)
           end
           page_builder.finish
 

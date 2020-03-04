@@ -75,7 +75,7 @@ module Embulk
               elsif column["type"] == "double"
                 row[col[:api_name]].to_f
               else
-                row[col[:api_name]].force_encoding("UTF-8")
+                row[col[:api_name]]
               end
             end)
           end

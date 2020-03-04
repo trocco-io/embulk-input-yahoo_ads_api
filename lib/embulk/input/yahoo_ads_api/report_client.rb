@@ -13,7 +13,7 @@ module Embulk
         def run(query)
           report_id = add_report(query)
           ::Embulk.logger.info "Create Report, report_id = #{report_id}"
-          data = CSV.parse(report_download(report_id),headers: true)
+          data = CSV.parse(report_download(report_id).force_encoding("UTF-8"),headers: true)
           ::Embulk.logger.info "Download Report, report_id = #{report_id}"
           remove_report(report_id)
           ::Embulk.logger.info "Remove Report JOB, report_job_id = #{report_id}"
@@ -36,7 +36,7 @@ module Embulk
                   downloadEncode: "UTF-8",
                   downloadFormat: "CSV",
                   fields: column_name_list,
-                  lang: "EN",
+                  lang: "JA",
                   reportName: "YahooReport_#{DateTime.now.strftime("%Y%m%d_%H%I%s")}",
                 }
               ]
@@ -54,7 +54,7 @@ module Embulk
                   reportDateRangeType: config[:date_range_type],
                   reportDownloadEncode: "UTF-8",
                   reportDownloadFormat: "CSV",
-                  reportLanguage: "EN",
+                  reportLanguage: "JA",
                   reportName: "YahooReport_#{DateTime.now.strftime("%Y%m%d_%H%I%s")}",
                   reportType: config[:report_type],
                 }

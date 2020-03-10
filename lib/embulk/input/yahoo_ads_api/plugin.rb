@@ -54,6 +54,7 @@ module Embulk
               report_type: task["report_type"],
               fields: task["columns"]
             })
+            # delete the total data of specified period
             data.delete(-1)
           elsif task["target"] == "stats"
             column_list = Column.stats

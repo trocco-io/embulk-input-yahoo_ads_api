@@ -1,5 +1,4 @@
 require 'json'
-require 'nokogiri'
 require 'ostruct'
 module Embulk
   module Input

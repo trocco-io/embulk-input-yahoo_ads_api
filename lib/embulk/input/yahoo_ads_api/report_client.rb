@@ -1,5 +1,4 @@
 require 'json'
-require 'nokogiri'
 require 'ostruct'
 module Embulk
   module Input
@@ -13,9 +12,8 @@ module Embulk
         def run(query)
           report_id = add_report(query)
           ::Embulk.logger.info "Create Report, report_id = #{report_id}"
-          downloaded_report = report_download(report_id)
+          data = CSV.parse(report_download(report_id).force_encoding("UTF-8"),headers: true)
           ::Embulk.logger.info "Download Report, report_id = #{report_id}"
-          data = xml_parse(downloaded_report)
           remove_report(report_id)
           ::Embulk.logger.info "Remove Report JOB, report_job_id = #{report_id}"
           data
@@ -35,7 +33,7 @@ module Embulk
                   },
                   dateRangeType: config[:date_range_type],
                   downloadEncode: "UTF-8",
-                  downloadFormat: "XML",
+                  downloadFormat: "CSV",
                   fields: column_name_list,
                   lang: "JA",
                   reportName: "YahooReport_#{DateTime.now.strftime("%Y%m%d_%H%I%s")}",
@@ -54,7 +52,7 @@ module Embulk
                   fields: column_name_list,
                   reportDateRangeType: config[:date_range_type],
                   reportDownloadEncode: "UTF-8",
-                  reportDownloadFormat: "XML",
+                  reportDownloadFormat: "CSV",
                   reportLanguage: "JA",
                   reportName: "YahooReport_#{DateTime.now.strftime("%Y%m%d_%H%I%s")}",
                   reportType: config[:report_type],
@@ -84,27 +82,7 @@ module Embulk
             return response
           end
         end
-
-        def xml_parse(report)
-          Column.change.each do |list|
-            name_change_before = 'name="' + list[:from] + '"'
-            name_change_after = 'name="' + list[:to] + '"'
-            report.gsub!(name_change_before,name_change_after)
-            row_change_before = list[:from] + '="'
-            row_change_after = list[:to] + '="'
-            report.gsub!(row_change_before,row_change_after)
-          end
-          xml = Nokogiri::XML(report)
-          columns = xml.css('column').map{|column| column.attribute('name').value }
-          xml.css('row').map do |row|
-            value = {}
-            columns.each do |column|
-              value[column.to_sym] = row.attribute(column).value
-            end
-            OpenStruct.new(value)
-          end
-        end
-
+        
         def remove_report(report_id)
           remove_config = {
             accountId: @account_id,

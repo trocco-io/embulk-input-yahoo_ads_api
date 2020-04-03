@@ -15,7 +15,6 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency 'nokogiri', ['>= 1.10.4']
   spec.add_dependency 'rest-client', ['~> 2.1.0']
 
   spec.add_development_dependency 'embulk', ['>= 0.9.8']

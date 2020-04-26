@@ -114,10 +114,15 @@ module Embulk
             {:request_name=>"VIEWABLE_IMPS_RATE", :api_name=>"ビューアブルインプレッション率"},
             {:request_name=>"VIEWABLE_CLICK_RATE", :api_name=>"ビューアブルクリック率"},
             {:request_name=>"VIDEO_VIEWS_TO_10_SEC", :api_name=>"動画の10秒再生数"},
+            {:request_name=>"IMPRESSION_SHARE", :api_name=>"インプレッションシェア"},
+            {:request_name=>"IMPRESSION_SHARE_BUDGET_LOSS", :api_name=>"インプレッションシェア損失率（予算）"},
+            {:request_name=>"IMPRESSION_SHARE_RANK_LOSS", :api_name=>"インプレッションシェア損失率（ランク）"},
           ]
         end
         def self.account
           [
+            {:request_name=>"ACCOUNT_ID", :api_name=>"アカウントID"},
+            {:request_name=>"ACCOUNT_NAME", :api_name=>"アカウント名"},
             {:request_name=>"COST", :api_name=>"コスト"},
             {:request_name=>"IMPS", :api_name=>"インプレッション数"},
             {:request_name=>"CLICKS", :api_name=>"クリック数"},
@@ -160,6 +165,8 @@ module Embulk
         end
         def self.campaign
           [
+            {:request_name=>"ACCOUNT_ID", :api_name=>"アカウントID"},
+            {:request_name=>"ACCOUNT_NAME", :api_name=>"アカウント名"},
             {:request_name=>"CAMPAIGN_ID", :api_name=>"キャンペーンID"},
             {:request_name=>"CAMPAIGN_NAME", :api_name=>"キャンペーン名"},
             {:request_name=>"CAMPAIGN_DISTRIBUTION_SETTINGS", :api_name=>"キャンペーン配信設定"},
@@ -229,6 +236,8 @@ module Embulk
         end
         def self.adgroup
           [
+            {:request_name=>"ACCOUNT_ID", :api_name=>"アカウントID"},
+            {:request_name=>"ACCOUNT_NAME", :api_name=>"アカウント名"},
             {:request_name=>"CAMPAIGN_ID", :api_name=>"キャンペーンID"},
             {:request_name=>"ADGROUP_ID", :api_name=>"広告グループID"},
             {:request_name=>"CAMPAIGN_NAME", :api_name=>"キャンペーン名"},
@@ -290,6 +299,8 @@ module Embulk
         end
         def self.ad
           [
+            {:request_name=>"ACCOUNT_ID", :api_name=>"アカウントID"},
+            {:request_name=>"ACCOUNT_NAME", :api_name=>"アカウント名"},
             {:request_name=>"CAMPAIGN_ID", :api_name=>"キャンペーンID"},
             {:request_name=>"ADGROUP_ID", :api_name=>"広告グループID"},
             {:request_name=>"AD_ID", :api_name=>"広告ID"},
@@ -356,6 +367,8 @@ module Embulk
         end
         def self.keywords
           [
+            {:request_name=>"ACCOUNT_ID", :api_name=>"アカウントID"},
+            {:request_name=>"ACCOUNT_NAME", :api_name=>"アカウント名"},
             {:request_name=>"CAMPAIGN_ID", :api_name=>"キャンペーンID"},
             {:request_name=>"ADGROUP_ID", :api_name=>"広告グループID"},
             {:request_name=>"KEYWORD_ID", :api_name=>"キーワードID"},
@@ -483,6 +496,9 @@ module Embulk
             {:request_name=>"VIDEO_VIEWS_TO_10_SEC", :api_name=>"videoViewsTo10Sec"},
             {:request_name=>"AVG_PERCENT_VIDEO_VIEWED", :api_name=>"averageRateVideoViewed"},
             {:request_name=>"AVG_DURATION_VIDEO_VIEWED", :api_name=>"averageDurationVideoViewed"},
+            {:request_name=>"IMPRESSION_SHARE", :api_name=>"impressionShare"},
+            {:request_name=>"IMPRESSION_SHARE_BUDGET_LOSS", :api_name=>"budgetImpressionShareLostRate"},
+            {:request_name=>"IMPRESSION_SHARE_RANK_LOSS", :api_name=>"rankImpressionShareLostRate"},
           ]
         end
       end

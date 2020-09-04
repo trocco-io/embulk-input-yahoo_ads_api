@@ -42,11 +42,12 @@ module Embulk
           token = Auth.new({
             client_id: task["client_id"],
             client_secret: task["client_secret"],
-            refresh_token: task["refresh_token"] 
+            refresh_token: task["refresh_token"]
           }).get_token
-          if task["target"] == "report"
-            column_list = Column.send(task[:report_type] != nil ? task[:report_type].downcase : "ydn")
-            data = ReportClient.new(task["servers"], task["account_id"], token).run({
+          case task["target"]
+          when "report"
+            client = ReportClient.new(task["servers"], task["account_id"], token)
+            data = client.run({
               servers: task["servers"],
               date_range_type: 'CUSTOM_DATE',
               start_date: task["start_date"],
@@ -56,9 +57,9 @@ module Embulk
             })
             # delete the total data of specified period
             data.delete(-1)
-          elsif task["target"] == "stats"
-            column_list = Column.stats
-            data = StatsClient.new(task["servers"], task["account_id"], token).run({
+          when "stats"
+            client = StatsClient.new(task["servers"], task["account_id"], token)
+            data = client.run({
               servers: task["servers"],
               date_range_type: 'CUSTOM_DATE',
               start_date: task["start_date"],
@@ -66,19 +67,28 @@ module Embulk
               stats_type: task["report_type"],
             })
           end
-          data.each do |row|
-            page_builder.add(task["columns"].map do|column|
-              col = column_list.find{|c| c[:request_name] == column["name"]}
-              if column["type"] == "timestamp"
-                Time.strptime(row[col[:api_name]],column["format"])
-              elsif column["type"] == "long"
-                row[col[:api_name]].to_i
-              elsif column["type"] == "double"
-                row[col[:api_name]].to_f
-              else
-                row[col[:api_name]]
-              end
-            end)
+          task_column_names = task["columns"].map{|c| c["name"]}
+          columns_list = {}
+          client.columns(task["report_type"]).each { |c|
+            columns_list[c[:request_name].to_sym] = c[:api_name] if task_column_names.include? c[:request_name]
+          }
+          puts "UUID data.class: #{data.class}, data: #{data}"
+          data.each_slice(100) do |rows|
+            rows.each do |row|
+              page_builder.add(task["columns"].map do|column|
+                col = columns_list[column["name"].to_sym]
+                next if column.empty? || column.nil?
+                if column["type"] == "timestamp"
+                  Time.strptime(row[col],column["format"])
+                elsif column["type"] == "long"
+                  row[col].to_i
+                elsif column["type"] == "double"
+                  row[col].to_f
+                else
+                  row[col]
+                end
+              end)
+            end
           end
           page_builder.finish
 

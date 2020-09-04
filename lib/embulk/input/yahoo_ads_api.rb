@@ -1,6 +1,5 @@
 require "embulk/input/yahoo_ads_api/auth"
 require "embulk/input/yahoo_ads_api/client"
-require "embulk/input/yahoo_ads_api/column"
 require "embulk/input/yahoo_ads_api/report_client"
 require "embulk/input/yahoo_ads_api/stats_client"
 require "embulk/input/yahoo_ads_api/plugin"

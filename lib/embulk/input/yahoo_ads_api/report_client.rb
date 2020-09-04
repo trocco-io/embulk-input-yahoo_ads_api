@@ -19,6 +19,19 @@ module Embulk
           data
         end
 
+        def columns(type)
+          params = yss? ? { reportType: type } : { type: 'AD' }
+          response = self.invoke('getReportFields', params.to_json )
+          columns = JSON.parse(response, symbolize_names: true)[:rval][:fields].map do |field|
+            { request_name: field[:fieldName], api_name: field[:displayFieldNameJA] }
+          end
+          columns
+        end
+
+        def yss?
+          @base.include? 'search'
+        end
+
         private
         def add_report(config)
           column_name_list = config[:fields].map {|field| field["name"]}
@@ -63,7 +76,7 @@ module Embulk
           response = JSON.parse(self.invoke("add", add_config))
           if response["rval"]["values"][0]["operationSucceeded"] == false
             error = response["rval"]["values"][0]["errors"]
-            raise ::Embulk::Input::YahooAdsApi::Error::InvalidEnumError, error.to_json 
+            raise ::Embulk::Input::YahooAdsApi::Error::InvalidEnumError, error.to_json
           end
           response["rval"]["values"][0]["reportDefinition"]["reportJobId"].to_s
         end
@@ -82,7 +95,7 @@ module Embulk
             return response
           end
         end
-        
+
         def remove_report(report_id)
           remove_config = {
             accountId: @account_id,

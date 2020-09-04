@@ -24,4 +24,3 @@ module Embulk
     end
   end
 end
-  

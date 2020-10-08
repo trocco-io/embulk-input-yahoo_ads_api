@@ -1,5 +1,8 @@
 require 'json'
 require 'ostruct'
+require 'fastest_csv'
+require 'csv'
+
 module Embulk
   module Input
     module YahooAdsApi
@@ -12,7 +15,13 @@ module Embulk
         def run(query)
           report_id = add_report(query)
           ::Embulk.logger.info "Create Report, report_id = #{report_id}"
-          data = CSV.parse(report_download(report_id).force_encoding("UTF-8"),headers: true)
+          data = FastestCSV.parse(report_download(report_id).force_encoding("UTF-8"))
+          # data = CSV.parse(report_download(report_id).force_encoding("UTF-8"), headers: true)
+          # data.delete(-1)
+          # delete the header line
+          data.delete_at(0)
+          # delete the total data of specified period
+          data.delete_at(-1)
           ::Embulk.logger.info "Download Report, report_id = #{report_id}"
           remove_report(report_id)
           ::Embulk.logger.info "Remove Report JOB, report_job_id = #{report_id}"

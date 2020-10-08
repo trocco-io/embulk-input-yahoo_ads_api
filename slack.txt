@@ -1,0 +1,35 @@
+2020-08-13 08:24:30.692 +0000 Preparing your trocco environment...
+2020-08-13 08:24:30.710 +0000 cpu=2.0, memory=2.0Gi, disk=200.0Gi
+Successfully created your environment
+Context Time: 2020-08-13 17:24:29 +0900
+2020-08-13 08:25:48.052 +0000: Embulk v0.9.23
+2020-08-13 08:25:48.818 +0000 [WARN] (main): DEPRECATION: JRuby org.jruby.embed.ScriptingContainer is directly injected.
+2020-08-13 08:25:50.345 +0000 [WARN] (main): BUNDLE_GEMFILE has already been set: "/work/Gemfile"
+2020-08-13 08:25:50.345 +0000 [WARN] (main): BUNDLE_GEMFILE is being overwritten: "/work/embulk_bundle/Gemfile"
+2020-08-13 08:25:50.345 +0000 [INFO] (main): Gem's home and path are being cleared.
+2020-08-13 08:25:51.951 +0000 [INFO] (main): Started Embulk v0.9.23
+2020-08-13 08:25:53.338 +0000 [INFO] (0001:transaction): Loaded plugin embulk-input-yahoo_ads_api (0.2.4)
+2020-08-13 08:25:54.221 +0000 [INFO] (0001:transaction): Loaded plugin embulk-output-bigquery (0.6.9)
+2020-08-13 08:25:54.246 +0000 [INFO] (0001:transaction): Loaded plugin embulk-filter-speedometer (0.3.4)
+2020-08-13 08:25:54.261 +0000 [INFO] (0001:transaction): Loaded plugin embulk-filter-column (0.7.1)
+2020-08-13 08:25:54.275 +0000 [INFO] (0001:transaction): Loaded plugin embulk-filter-typecast (0.2.2)
+2020-08-13 08:25:54.286 +0000 [INFO] (0001:transaction): Loaded plugin embulk-filter-add_time (0.2.0)
+2020-08-13 08:25:54.382 +0000 [INFO] (0001:transaction): Using local thread executor with max_threads=4 / output tasks 2 = input tasks 1 * 2
+2020-08-13 08:25:54.408 +0000 [INFO] (0001:transaction): embulk-output-bigquery: Get dataset... all-connect:ads_fixed
+2020-08-13 08:25:54.412 +0000 [WARN] (0001:transaction): embulk-output-bigquery: timeout_sec is deprecated in google-api-ruby-client >= v0.11.0. Use read_timeout_sec instead
+2020-08-13 08:25:56.302 +0000 [INFO] (0001:transaction): embulk-output-bigquery: Create table... all-connect:ads_fixed.LOAD_TEMP_7694275b_854c_4c74_aa8a_e62bbecb1066_step00_flets_hikari_yss_34982_from_trocco
+2020-08-13 08:25:56.303 +0000 [INFO] (0001:transaction): embulk-output-bigquery: Get table... all-connect:ads_fixed.step00_softbank_hikari_yss_701684_from_trocco
+2020-08-13 08:25:57.023 +0000 [INFO] (0001:transaction): embulk-output-bigquery: Create table... all-connect:ads_fixed.step00_flets_hikari_yss_34982_from_trocco
+2020-08-13 08:25:57.370 +0000 [INFO] (0001:transaction): {done:  0 / 1, running: 0}
+2020-08-13 08:25:57.437 +0000 [INFO] (0014:task-0000): {speedometer: {active: 0, total: 0.0b, sec: 0.00, speed: 0.0b/s, records: 0, record-speed: 0/s}}
+2020-08-13 08:25:57.699 +0000 [INFO] (0014:task-0000): Access URI: https://ads-search.yahooapis.jp/api/v1/ReportDefinitionService/add
+2020-08-13 08:25:58.119 +0000 [INFO] (0014:task-0000): Create Report, report_id = 2686889719
+2020-08-13 08:26:03.120 +0000 [INFO] (0014:task-0000): Access URI: https://ads-search.yahooapis.jp/api/v1/ReportDefinitionService/download
+2020-08-13 08:26:03.378 +0000 [INFO] (0014:task-0000): Waiting For Making Report
+2020-08-13 08:26:13.379 +0000 [INFO] (0014:task-0000): Access URI: https://ads-search.yahooapis.jp/api/v1/ReportDefinitionService/download
+2020-08-13 08:26:13.568 +0000 [INFO] (0014:task-0000): Waiting For Making Report
+2020-08-13 08:26:33.568 +0000 [INFO] (0014:task-0000): Access URI: https://ads-search.yahooapis.jp/api/v1/ReportDefinitionService/download
+2020-08-13 08:27:38.394 +0000 [INFO] (0001:transaction): {done:  1 / 1, running: 0}
+2020-08-13 08:27:38.397 +0000 [INFO] (0001:transaction): embulk-output-bigquery: Delete table... all-connect:ads_fixed.LOAD_TEMP_7694275b_854c_4c74_aa8a_e62bbecb1066_step00_flets_hikari_yss_34982_from_trocco
+
+Giving up on retrying

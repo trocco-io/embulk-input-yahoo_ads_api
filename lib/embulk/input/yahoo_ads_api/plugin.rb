@@ -81,21 +81,11 @@ module Embulk
           end.compact.to_h
           data.each_slice(100) do |rows|
             rows.each do |row|
-              puts "----------"
-              puts "row: #{row}, class: #{row.class}"
-              ruby_row = [].push *row
-              row = ruby_row
-              puts "row: #{row}, class: #{row.class}"
+              row = [].push *row # convert java ArrayList into ruby Array
               casts.each do |k, v|
                 case k
                 when "timestamp"
-                  v.each { |i|
-                    # convert java time to ruby time and parse it with specified format
-                    puts "UUID: i[1]: #{i[1]}, class: #{i[1].class}"
-                    puts "UUID: row[i[0]]: #{row[i[0]]}, class: #{row[i[0]].class}"
-                    puts "Time.strptime(Time.at(row[i[0]]), i[1]): #{Time.strptime(row[i[0]], i[1])}, class: #{Time.strptime(row[i[0]], i[1]).class}"
-                    row[i[0]] = Time.strptime(row[i[0]], i[1])
-                  }
+                  v.each { |i| row[i[0]] = Time.strptime(row[i[0]], i[1]) }
                 when "long"
                   v.each { |i| row[i] = row[i].to_i }
                 when "double"
@@ -103,31 +93,6 @@ module Embulk
                 end
               end
               page_builder.add row
-              # page_builder.add(task["columns"].map do|column|
-              #   col = columns_list[column["name"].to_sym]
-              #   next if column.empty? || column.nil?
-              #   # case column["type"]
-              #   # when "timestamp"
-              #   #   Time.strptime(row[col],column["format"])
-              #   # when "long"
-              #   #   row[col].to_i
-              #   # when "double"
-              #   #   row[col].to_f
-              #   # else
-              #   #   row[col]
-              #   # end
-              #   if column["type"] == "timestamp"
-              #     puts "weida: time: #{row[col]}, class: #{row[col].class}"
-              #     puts "weida #{Time.strptime(row[col],column["format"])}, class: #{Time.strptime(row[col],column["format"]).class}"
-              #     Time.strptime(row[col],column["format"])
-              #   elsif column["type"] == "long"
-              #     row[col].to_i
-              #   elsif column["type"] == "double"
-              #     row[col].to_f
-              #   else
-              #     row[col]
-              #   end
-              # end)
             end
           end
           page_builder.finish

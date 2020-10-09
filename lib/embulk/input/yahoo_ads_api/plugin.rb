@@ -42,6 +42,7 @@ module Embulk
             client_secret: task["client_secret"],
             refresh_token: task["refresh_token"]
           }).get_token
+          task_column_names = task["columns"].map{|c| c["name"]}
           case task["target"]
           when "report"
             client = ReportClient.new(task["servers"], task["account_id"], token)
@@ -53,6 +54,37 @@ module Embulk
               report_type: task["report_type"],
               fields: task["columns"]
             })
+            columns_list = client.columns(task["report_type"]).map { |c|
+              [c[:request_name].to_sym, c[:api_name]] if task_column_names.include? c[:request_name]
+            }.compact.to_h
+            casts = task["columns"].group_by { |c| c["type"] }.map do |k, v|
+              case k
+              when "timestamp"
+                values = v.map { |c| [task["columns"].index { |sc| sc == c }, c["format"]] }.compact
+                [k, values]
+              when "long", "double"
+                values = v.map { |c| task["columns"].index { |sc| sc == c } }.compact
+                [k, values]
+              else
+                nil
+              end
+            end.compact.to_h
+            data.each_slice(100) do |rows|
+              rows.each do |row|
+                row = [].push *row # convert java ArrayList into ruby Array
+                casts.each do |k, v|
+                  case k
+                  when "timestamp"
+                    v.each { |i| row[i[0]] = Time.strptime(row[i[0]], i[1]) }
+                  when "long"
+                    v.each { |i| row[i] = row[i].to_i }
+                  when "double"
+                    v.each { |i| row[i] = row[i].to_f }
+                  end
+                end
+                page_builder.add row
+              end
+            end
           when "stats"
             client = StatsClient.new(task["servers"], task["account_id"], token)
             data = client.run({
@@ -62,37 +94,25 @@ module Embulk
               end_date: task["end_date"],
               stats_type: task["report_type"],
             })
-          end
-          task_column_names = task["columns"].map{|c| c["name"]}
-          columns_list = client.columns(task["report_type"]).map { |c|
-            [c[:request_name].to_sym, c[:api_name]] if task_column_names.include? c[:request_name]
-          }.compact.to_h
-          casts = task["columns"].group_by { |c| c["type"] }.map do |k, v|
-            case k
-            when "timestamp"
-              values = v.map { |c| [task["columns"].index { |sc| sc == c }, c["format"]] }.compact
-              [k, values]
-            when "long", "double"
-              values = v.map { |c| task["columns"].index { |sc| sc == c } }.compact
-              [k, values]
-            else
-              nil
-            end
-          end.compact.to_h
-          data.each_slice(100) do |rows|
-            rows.each do |row|
-              row = [].push *row # convert java ArrayList into ruby Array
-              casts.each do |k, v|
-                case k
-                when "timestamp"
-                  v.each { |i| row[i[0]] = Time.strptime(row[i[0]], i[1]) }
-                when "long"
-                  v.each { |i| row[i] = row[i].to_i }
-                when "double"
-                  v.each { |i| row[i] = row[i].to_f }
-                end
+            columns_list = client.columns.map { |c|
+              [c[:request_name].to_sym, c[:api_name]] if task_column_names.include? c[:request_name]
+            }.compact.to_h
+            data.each_slice(100) do |rows|
+              rows.each do |row|
+                page_builder.add(task["columns"].map do|column|
+                  col = columns_list[column["name"].to_sym]
+                  next if column.empty? || column.nil?
+                  if column["type"] == "timestamp"
+                    Time.strptime(row[col],column["format"])
+                  elsif column["type"] == "long"
+                    row[col]&.to_i
+                  elsif column["type"] == "double"
+                    row[col]&.to_f
+                  else
+                    row[col]
+                  end
+                end)
               end
-              page_builder.add row
             end
           end
           page_builder.finish

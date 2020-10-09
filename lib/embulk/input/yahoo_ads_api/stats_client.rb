@@ -74,7 +74,7 @@ module Embulk
           reshape_data(raw_data,query)
         end
 
-        def columns(type)
+        def columns(_type=nil)
           STAT_COLUMNS
         end
 
@@ -96,6 +96,7 @@ module Embulk
             numberResults: number_result
           }.to_json
           response = JSON.parse(self.invoke("get", get_config))
+
           if response.dig("rval","values").nil?
             raw_data
           else
@@ -114,9 +115,14 @@ module Embulk
         end
 
         def reshape_data(data,config)
-          data_type = 'campaignStatsValue' if config[:stats_type] == "CAMPAIGN"
-          data_type = 'adGroupStatsValue' if config[:stats_type] == "ADGROUP"
-          data_type = 'adStatsValue' if config[:stats_type] == "AD"
+          data_type = case config[:stats_type]
+          when 'CAMPAIGN'
+            'campaignStatsValue'
+          when 'ADGROUP'
+            'adGroupStatsValue'
+          when 'AD'
+            'adStatsValue'
+          end
           data.map do |value|
             stats_info = value[data_type]["stats"]
             value[data_type].delete("stats")

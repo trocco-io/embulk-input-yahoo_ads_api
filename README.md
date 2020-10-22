@@ -15,7 +15,7 @@
 - **refresh_token**: Refresh token to get access token.  (string, required)
 - **servers**: Servers of API. It is different for YSS and YDN. (string, required)
 - **account_id**: Yahoo account id. (string, required)
-- **report_type**: YSS and stats of YDN report type. It is required only to use YSS. (string, default: `null`)
+- **report_type**: YSS and stats of YDN report type. It is required when use YSS and stats of YDN. (string, default: `null`)
 - **start_date**: Report start date. format:`YYYYMMDD` (string, required)
 - **end_date**: Report end date. format:`YYYYMMDD` (string, required)
 - **columns**: Report columns. (string, required)

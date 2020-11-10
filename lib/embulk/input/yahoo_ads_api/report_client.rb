@@ -1,6 +1,4 @@
 require 'json'
-require 'ostruct'
-require 'fastest_csv'
 
 module Embulk
   module Input
@@ -14,9 +12,7 @@ module Embulk
         def run(query)
           report_id = add_report(query)
           ::Embulk.logger.info "Create Report, report_id = #{report_id}"
-          data = FastestCSV.parse(report_download(report_id).force_encoding("UTF-8"))
-          data.delete_at(0) # delete the header row
-          data.delete_at(-1) # delete the summary row
+          data = report_download(report_id)
           ::Embulk.logger.info "Download Report, report_id = #{report_id}"
           remove_report(report_id)
           ::Embulk.logger.info "Remove Report JOB, report_job_id = #{report_id}"
@@ -91,12 +87,20 @@ module Embulk
             reportJobId: report_job_id
           }.to_json
           sleep(wait_second)
-          response = self.invoke('download', download_config)
-          if response.start_with?("{") && response.end_with?("}")
+          file_path = self.temporarily_download('download', download_config)
+          download_config = nil
+          left_flag = false; right_flag = false
+          File.open(file_path) do |file|
+            file.each_line.with_index do |line, i|
+              left_flag = true if i == 0 && line.start_with?('{')
+              right_flag = true if file.eof? && line.end_with?('}')
+            end
+          end
+          if left_flag && right_flag
             ::Embulk.logger.info "Waiting For Making Report"
             return report_download(report_job_id, wait_second * 2)
           else
-            return response
+            return file_path
           end
         end
 

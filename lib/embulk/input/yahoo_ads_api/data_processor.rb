@@ -7,17 +7,11 @@ module Embulk
       class DataProcessor
         def initialize(task)
           @task = task
-          token = Auth.new({
+          @token = Auth.new({
             client_id: task["client_id"],
             client_secret: task["client_secret"],
             refresh_token: task["refresh_token"]
           }).get_token
-          @client = case @task["target"]
-          when "report"
-            ReportClient
-          when "stats"
-            StatsClient
-          end.new(task["servers"], task["account_id"], token)
         end
 
         def run
@@ -31,7 +25,7 @@ module Embulk
 
         private
         def report_processor
-          data = @client.run({
+          file_path = ReportClient.new(@task["servers"], @task["account_id"], @token).run({
             servers: @task["servers"],
             date_range_type: 'CUSTOM_DATE',
             start_date: @task["start_date"],
@@ -42,37 +36,39 @@ module Embulk
           casts = @task['columns'].group_by { |c| c["type"] }.map do |k, v|
             case k
             when "timestamp"
-              values = v.map { |c| [@task["columns"].index { |sc| sc == c }, c["format"]] }.compact
+              values = v.map do |c|
+                { index: @task["columns"].index(c), format: c["format"] }
+              end.compact
               [k, values]
             when "long", "double"
-              values = v.map { |c| @task["columns"].index { |sc| sc == c } }.compact
+              values = v.map { |c| { index: @task["columns"].index(c) } }
               [k, values]
             else
               nil
             end
           end.compact.to_h
-          File.open(data) do |file|
+          File.open(file_path) do |file|
             file.each_line.with_index do |row, i|
               next if i == 0 || file.eof? # ignore first and last line
               processed_row = CSV.parse_line row.force_encoding("UTF-8")
               casts.each do |k, v|
                 case k
                 when "timestamp"
-                  v.each { |i| processed_row[i[0]] = Time.strptime(row[i[0]], i[1]) }
+                  v.each { |i| processed_row[i[:index]] = Time.strptime(processed_row[i[:index]], i[:format]) }
                 when "long"
-                  v.each { |i| processed_row[i] = processed_row[i].to_i }
+                  v.each { |i| processed_row[i[:index]] = processed_row[i[:index]].to_i }
                 when "double"
-                  v.each { |i| processed_row[i] = processed_row[i].to_f }
+                  v.each { |i| processed_row[i[:index]] = processed_row[i[:index]].to_f }
                 end
               end
               yield processed_row
             end
           end
-          FileUtils.rm_r(File.dirname(data), :secure => true)
+          FileUtils.rm_r(File.dirname(file_path), :secure => true)
         end
 
         def stats_processor
-          data = @client.run({
+          data = StatsClient.new(@task["servers"], @task["account_id"], @token).run({
             servers: @task["servers"],
             date_range_type: 'CUSTOM_DATE',
             start_date: @task["start_date"],

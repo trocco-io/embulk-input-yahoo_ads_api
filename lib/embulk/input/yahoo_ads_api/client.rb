@@ -25,6 +25,8 @@ module Embulk
         end
 
         def temporarily_download(method, params)
+          url = @base + method
+          ::Embulk.logger.info "Access URI: #{url}"
           path = "./tmp/embulk-#{Date.today}/"
           FileUtils.mkdir_p(path)
           file_path = path+"#{SecureRandom.hex(10)}"
@@ -36,7 +38,7 @@ module Embulk
             }
             RestClient::Request.execute(
              method: :post,
-             url: @base + method,
+             url: url,
              payload: params,
              headers: {
                content_type: :json,

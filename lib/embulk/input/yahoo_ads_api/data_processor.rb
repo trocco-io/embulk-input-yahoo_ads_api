@@ -68,7 +68,8 @@ module Embulk
         end
 
         def stats_processor
-          data = StatsClient.new(@task["servers"], @task["account_id"], @token).run({
+          client = StatsClient.new(@task["servers"], @task["account_id"], @token)
+          data = client.run({
             servers: @task["servers"],
             date_range_type: 'CUSTOM_DATE',
             start_date: @task["start_date"],
@@ -76,7 +77,7 @@ module Embulk
             stats_type: @task["report_type"],
           })
           task_column_names = @task['columns'].map{|c| c["name"]}
-          columns_list = @client.columns(@task["report_type"]).map { |c|
+          columns_list = client.columns(@task["report_type"]).map { |c|
             [c[:request_name].to_sym, c[:api_name]] if task_column_names.include? c[:request_name]
           }.compact.to_h
           data.each_slice(100) do |rows|

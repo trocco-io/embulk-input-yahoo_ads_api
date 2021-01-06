@@ -1,5 +1,5 @@
 require 'json'
-require 'ostruct'
+
 module Embulk
   module Input
     module YahooAdsApi
@@ -12,11 +12,24 @@ module Embulk
         def run(query)
           report_id = add_report(query)
           ::Embulk.logger.info "Create Report, report_id = #{report_id}"
-          data = CSV.parse(report_download(report_id).force_encoding("UTF-8"),headers: true)
+          file_path = report_download(report_id)
           ::Embulk.logger.info "Download Report, report_id = #{report_id}"
           remove_report(report_id)
           ::Embulk.logger.info "Remove Report JOB, report_job_id = #{report_id}"
-          data
+          file_path
+        end
+
+        def columns(type)
+          params = yss? ? { reportType: type } : { type: 'AD' }
+          response = self.invoke('getReportFields', params.to_json )
+          columns = JSON.parse(response, symbolize_names: true)[:rval][:fields].map do |field|
+            { request_name: field[:fieldName], api_name: field[:displayFieldNameJA] }
+          end
+          columns
+        end
+
+        def yss?
+          @base.include? 'search'
         end
 
         private
@@ -63,7 +76,7 @@ module Embulk
           response = JSON.parse(self.invoke("add", add_config))
           if response["rval"]["values"][0]["operationSucceeded"] == false
             error = response["rval"]["values"][0]["errors"]
-            raise ::Embulk::Input::YahooAdsApi::Error::InvalidEnumError, error.to_json 
+            raise ::Embulk::Input::YahooAdsApi::Error::InvalidEnumError, error.to_json
           end
           response["rval"]["values"][0]["reportDefinition"]["reportJobId"].to_s
         end
@@ -74,15 +87,15 @@ module Embulk
             reportJobId: report_job_id
           }.to_json
           sleep(wait_second)
-          response = self.invoke('download', download_config)
-          if response.start_with?("{") && response.end_with?("}")
+          file_path = self.temporarily_download('download', download_config)
+          if json_response?(file_path)
             ::Embulk.logger.info "Waiting For Making Report"
             return report_download(report_job_id, wait_second * 2)
           else
-            return response
+            return file_path
           end
         end
-        
+
         def remove_report(report_id)
           remove_config = {
             accountId: @account_id,
@@ -93,6 +106,17 @@ module Embulk
             ]
           }.to_json
           self.invoke('remove', remove_config)
+        end
+
+        def json_response?(file_path)
+          left_flag = false; right_flag = false
+          File.open(file_path) do |file|
+            file.each_line.with_index do |line, i|
+              left_flag = true if i == 0 && line.start_with?('{')
+              right_flag = true if file.eof? && line.end_with?('}')
+            end
+          end
+          return left_flag && right_flag
         end
       end
     end

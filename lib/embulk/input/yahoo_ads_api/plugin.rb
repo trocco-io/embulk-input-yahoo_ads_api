@@ -1,5 +1,5 @@
 require 'time'
-require 'csv'
+
 module Embulk
   module Input
     module YahooAdsApi
@@ -23,13 +23,11 @@ module Embulk
           columns = task[:columns].map do |column|
             ::Embulk::Column.new(nil, column["name"], column["type"].to_sym)
           end
-
           resume(task, columns, 1, &control)
         end
 
         def self.resume(task, columns, count, &control)
           task_reports = yield(task, columns, count)
-
           next_config_diff = {}
           return next_config_diff
         end
@@ -39,49 +37,8 @@ module Embulk
 
         def run
           ConfigCheck.check(task)
-          token = Auth.new({
-            client_id: task["client_id"],
-            client_secret: task["client_secret"],
-            refresh_token: task["refresh_token"] 
-          }).get_token
-          if task["target"] == "report"
-            column_list = Column.send(task[:report_type] != nil ? task[:report_type].downcase : "ydn")
-            data = ReportClient.new(task["servers"], task["account_id"], token).run({
-              servers: task["servers"],
-              date_range_type: 'CUSTOM_DATE',
-              start_date: task["start_date"],
-              end_date: task["end_date"],
-              report_type: task["report_type"],
-              fields: task["columns"]
-            })
-            # delete the total data of specified period
-            data.delete(-1)
-          elsif task["target"] == "stats"
-            column_list = Column.stats
-            data = StatsClient.new(task["servers"], task["account_id"], token).run({
-              servers: task["servers"],
-              date_range_type: 'CUSTOM_DATE',
-              start_date: task["start_date"],
-              end_date: task["end_date"],
-              stats_type: task["report_type"],
-            })
-          end
-          data.each do |row|
-            page_builder.add(task["columns"].map do|column|
-              col = column_list.find{|c| c[:request_name] == column["name"]}
-              if column["type"] == "timestamp"
-                Time.strptime(row[col[:api_name]],column["format"])
-              elsif column["type"] == "long"
-                row[col[:api_name]].to_i
-              elsif column["type"] == "double"
-                row[col[:api_name]].to_f
-              else
-                row[col[:api_name]]
-              end
-            end)
-          end
+          DataProcessor.new(task).run { |row| page_builder.add row }
           page_builder.finish
-
           task_report = {}
           return task_report
         end

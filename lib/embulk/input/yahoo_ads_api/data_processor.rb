@@ -1,5 +1,5 @@
-require 'csv'
-require 'fileutils'
+require "csv"
+require "fileutils"
 
 module Embulk
   module Input
@@ -10,12 +10,12 @@ module Embulk
           @token = Auth.new({
             client_id: task["client_id"],
             client_secret: task["client_secret"],
-            refresh_token: task["refresh_token"]
+            refresh_token: task["refresh_token"],
           }).get_token
         end
 
         def run
-          case @task['target']
+          case @task["target"]
           when "report"
             report_processor { |row| yield row }
           when "stats"
@@ -24,16 +24,17 @@ module Embulk
         end
 
         private
+
         def report_processor
-          file_path = ReportClient.new(@task["servers"], @task["account_id"], @token).run({
-            servers: @task["servers"],
-            date_range_type: 'CUSTOM_DATE',
+          file_path = ReportClient.new(@task["ads_type"], @task["account_id"], @token).run({
+            ads_type: @task["ads_type"],
+            date_range_type: "CUSTOM_DATE",
             start_date: @task["start_date"],
             end_date: @task["end_date"],
             report_type: @task["report_type"],
-            fields: @task['columns']
+            fields: @task["columns"],
           })
-          casts = @task['columns'].group_by { |c| c["type"] }.map do |k, v|
+          casts = @task["columns"].group_by { |c| c["type"] }.map do |k, v|
             case k
             when "timestamp"
               values = v.map do |c|
@@ -68,25 +69,25 @@ module Embulk
         end
 
         def stats_processor
-          client = StatsClient.new(@task["servers"], @task["account_id"], @token)
+          client = StatsClient.new(@task["ads_type"], @task["account_id"], @token)
           data = client.run({
-            servers: @task["servers"],
-            date_range_type: 'CUSTOM_DATE',
+            ads_type: @task["ads_type"],
+            date_range_type: "CUSTOM_DATE",
             start_date: @task["start_date"],
             end_date: @task["end_date"],
             stats_type: @task["report_type"],
           })
-          task_column_names = @task['columns'].map{|c| c["name"]}
+          task_column_names = @task["columns"].map { |c| c["name"] }
           columns_list = client.columns(@task["report_type"]).map { |c|
             [c[:request_name].to_sym, c[:api_name]] if task_column_names.include? c[:request_name]
           }.compact.to_h
           data.each_slice(100) do |rows|
             rows.each do |row|
-              processed_row = @task['columns'].map do|column|
+              processed_row = @task["columns"].map do |column|
                 col = columns_list[column["name"].to_sym]
                 next if column.empty? || column.nil?
                 if column["type"] == "timestamp"
-                  Time.strptime(row[col],column["format"])
+                  Time.strptime(row[col], column["format"])
                 elsif column["type"] == "long"
                   row[col]&.to_i
                 elsif column["type"] == "double"

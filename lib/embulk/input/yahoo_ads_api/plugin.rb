@@ -1,4 +1,4 @@
-require 'time'
+require "time"
 
 module Embulk
   module Input
@@ -13,7 +13,7 @@ module Embulk
             :client_id => config.param("client_id", :string),
             :client_secret => config.param("client_secret", :string),
             :refresh_token => config.param("refresh_token", :string),
-            :servers => config.param("servers", :string),
+            :ads_type => config.param("ads_type", :string),
             :columns => config.param("columns", :array),
             :account_id => config.param("account_id", :string),
             :report_type => config.param("report_type", :string, default: nil),

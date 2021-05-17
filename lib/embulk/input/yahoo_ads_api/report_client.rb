@@ -70,7 +70,12 @@ module Embulk
           sleep(wait_second)
           file_path = self.temporarily_download("download", download_config)
           if json_response?(file_path)
-            ::Embulk.logger.info "Waiting For Making Report"
+            ::Embulk.logger.info "Waiting For Making Report (wait_second: #{wait_second})"
+            File.open(file_path) do |file|
+              file.each_line do |line|
+                ::Embulk.logger.info line.chomp
+              end
+            end
             return report_download(report_job_id, wait_second * 2)
           else
             return file_path
